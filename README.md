@@ -1,31 +1,55 @@
-# Obsidian Task Board Plugin
+# Obsidian 格式工具栏插件
 
-一个用于 Obsidian 的XXXX插件，支持XXXX。
+一个用于 Obsidian 的格式工具栏插件，支持文本样式设置、颜色调整、高亮标记和表格创建等功能，让你的笔记更加丰富多彩。
 
 ## 主要功能
 
+1. **字体设置**
+   - 支持多种中文字体（宋体、黑体、微软雅黑、楷体、仿宋）
+   - 字体大小可调节（8-72px）
 
+2. **文本颜色**
+   - 提供丰富的预设颜色（蓝色系、红色系、绿色系、紫色系、中性色系）
+   - 支持选中文本快速上色
+
+3. **文本高亮**
+   - 多种半透明高亮颜色可选
+   - 支持高亮颜色的切换和取消
+
+4. **表格工具**
+   - 快速创建表格
+   - 可设置行数和列数（1-10）
+   - 支持表格对齐方式设置（左对齐、居中、右对齐）
 
 ## 安装方法
-
 
 1. 下载最新版本的发布包
 2. 解压到 Obsidian 插件目录：`.obsidian/plugins/`
 3. 在 Obsidian 设置中启用插件
 
-
 ## 使用说明
 
 ### 基本操作
 
+1. **字体设置**
+   - 选择文本后，点击字体名称应用字体
+   - 使用 +/- 按钮或直接输入数字调整字体大小
 
+2. **颜色设置**
+   - 选择文本后，点击颜色块应用文本颜色
+   - 点击高亮色块为文本添加背景色
+   - 再次点击相同的高亮色块可取消高亮
 
+3. **表格创建**
+   - 设置所需的行数和列数
+   - 选择表格对齐方式
+   - 点击创建表格按钮插入表格
 
 ## 问题反馈
 
 如果你发现任何问题或有功能建议，欢迎：
-1. 提交 [Issue](https://github.com/lxjthu/XXXX/issues)
-2. 发起 [Pull Request](https://github.com/lxjthu/XXXX/pulls)
+1. 提交 [Issue](https://github.com/lxjthu/obsidian-format-toolbar/issues)
+2. 发起 [Pull Request](https://github.com/lxjthu/obsidian-format-toolbar/pulls)
 
 ## 许可证
 

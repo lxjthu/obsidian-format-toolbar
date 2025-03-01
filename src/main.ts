@@ -16,6 +16,7 @@ class FormatToolbarView extends ItemView {
     private tableRows: number = 3;
     private tableCols: number = 3;
     private tableAlign: string = 'left';
+    private lastActiveEditor: any = null;
 
     constructor(leaf: WorkspaceLeaf, plugin: FormatToolbarPlugin) {
         super(leaf);
@@ -35,24 +36,24 @@ class FormatToolbarView extends ItemView {
         
         // 获取活动视图和编辑器
         const activeView = workspace.getActiveViewOfType(MarkdownView);
+        
+        // 如果有活动的编辑器，更新缓存
+        if (activeView?.editor) {
+            this.lastActiveEditor = activeView.editor;
+        }
+        
+        // 优先使用缓存的编辑器
+        if (this.lastActiveEditor) {
+            return { valid: true, editor: this.lastActiveEditor };
+        }
+        
+        // 如果没有缓存的编辑器，尝试获取当前活动的编辑器
         if (!activeView || !activeView.editor) {
             console.log('检查编辑器状态: 无活动的编辑器');
             new Notice('请在编辑器中使用此功能');
             return null;
         }
 
-        // 获取编辑器状态
-        const editorState = {
-            activeView: activeView,
-            hasEditor: true,
-            editor: activeView.editor,
-            workspaceState: {
-                activeLeaf: workspace.activeLeaf?.getViewState(),
-                lastActiveFile: workspace.getLastOpenFiles()?.[0]
-            }
-        };
-
-        console.log('检查编辑器状态:', editorState);
         return { valid: true, editor: activeView.editor };
     }
 
@@ -101,31 +102,26 @@ class FormatToolbarView extends ItemView {
     
         const toolbarContainer = container.createDiv('format-toolbar-container');
         
-        // 创建按钮区域
-        const buttonsContainer = toolbarContainer.createDiv('format-toolbar-buttons');
-        this.createFormatButtons(buttonsContainer);
-    
         // 创建设置区域
         const settingsContainer = toolbarContainer.createDiv('format-toolbar-settings');
         this.createSettingsPanel(settingsContainer);
+        
+        // 创建表格按钮
+        this.createTableButton(settingsContainer);
     
         // 注册编辑器事件监听
         this.registerEditorEvents();
     }
 
     private createFormatButtons(container: HTMLElement) {
-        // 创建格式化按钮
-        this.createFontButton(container);
-        this.createColorButton(container);
-        this.createHighlightButton(container);
-        this.createTableButton(container);
+        // 不再需要创建其他按钮
     }
 
     private createSettingsPanel(container: HTMLElement) {
         // 字体设置
         const fontSection = container.createDiv('settings-section');
         fontSection.createSpan({ text: '字体:', cls: 'settings-label' });
-        const fontSelect = fontSection.createEl('select', { cls: 'settings-select' });
+        const fontGrid = fontSection.createDiv('font-grid');
         const fonts = [
             { name: '宋体', family: 'SimSun' },
             { name: '黑体', family: 'SimHei' },
@@ -134,104 +130,209 @@ class FormatToolbarView extends ItemView {
             { name: '仿宋', family: 'FangSong' }
         ];
         fonts.forEach(font => {
-            const option = fontSelect.createEl('option', {
-                text: font.name,
-                value: font.family
+            const fontItem = fontGrid.createDiv('font-item');
+            fontItem.setText(font.name);
+            fontItem.style.fontFamily = font.family;
+            fontItem.addEventListener('click', () => {
+                this.selectedFont = font.family;
+                const editorState = this.checkEditorState();
+                if (!editorState) return;
+
+                const selection = editorState.editor.getSelection();
+                if (selection) {
+                    // 检查是否已有字体标记
+                    const fontRegex = /<span style="font-family: [^;]+; font-size: [^;]+">(.*?)<\/span>/;
+                    const match = selection.match(fontRegex);
+
+                    if (match) {
+                        // 如果已有字体标记，更新字体
+                        const innerText = match[1];
+                        const sizeMatch = match[0].match(/font-size: ([^;]+)/);
+                        const currentSize = sizeMatch ? sizeMatch[1] : this.selectedFontSize;
+                        editorState.editor.replaceSelection(
+                            `<span style="font-family: ${font.family}; font-size: ${currentSize}">${innerText}</span>`
+                        );
+                    } else {
+                        // 如果没有字体标记，直接应用新字体
+                        editorState.editor.replaceSelection(
+                            `<span style="font-family: ${font.family}; font-size: ${this.selectedFontSize}">${selection}</span>`
+                        );
+                    }
+                    editorState.editor.focus();
+                }
             });
-            option.style.fontFamily = font.family;
-        });
-        fontSelect.value = this.selectedFont;
-        fontSelect.addEventListener('change', () => {
-            this.selectedFont = fontSelect.value;
         });
 
         // 字体大小设置
         const fontSizeSection = container.createDiv('settings-section');
         fontSizeSection.createSpan({ text: '大小:', cls: 'settings-label' });
-        const fontSizeSelect = fontSizeSection.createEl('select', { cls: 'settings-select' });
-        const sizes = [
-            { name: '小号', size: '12px' },
-            { name: '正常', size: '16px' },
-            { name: '大号', size: '20px' },
-            { name: '超大', size: '24px' }
-        ];
-        sizes.forEach(size => {
-            fontSizeSelect.createEl('option', {
-                text: size.name,
-                value: size.size
-            });
+        const fontSizeControls = fontSizeSection.createDiv('font-size-controls');
+
+        // 减小字号按钮
+        const decreaseButton = fontSizeControls.createEl('button', {
+            cls: 'font-size-button',
+            text: '-'
         });
-        fontSizeSelect.value = this.selectedFontSize;
-        fontSizeSelect.addEventListener('change', () => {
-            this.selectedFontSize = fontSizeSelect.value;
+
+        // 字号输入框
+        const fontSizeInput = fontSizeControls.createEl('input', {
+            type: 'number',
+            cls: 'font-size-input',
+            value: parseInt(this.selectedFontSize).toString(),
+            attr: { min: '8', max: '72', step: '1' }
+        });
+
+        // 增加字号按钮
+        const increaseButton = fontSizeControls.createEl('button', {
+            cls: 'font-size-button',
+            text: '+'
+        });
+
+        // 字号更新函数
+        const updateFontSize = (newSize: number) => {
+            newSize = Math.max(8, Math.min(72, newSize));
+            this.selectedFontSize = `${newSize}px`;
+            fontSizeInput.value = newSize.toString();
+
+            const editorState = this.checkEditorState();
+            if (!editorState) return;
+
+            const selection = editorState.editor.getSelection();
+            if (selection) {
+                // 检查是否已有字体标记
+                const fontRegex = /<span style="font-family: [^;]+; font-size: [^;]+">(.*?)<\/span>/;
+                const match = selection.match(fontRegex);
+
+                if (match) {
+                    // 如果已有字体标记，更新字号
+                    const innerText = match[1];
+                    const fontMatch = match[0].match(/font-family: ([^;]+)/);
+                    const currentFont = fontMatch ? fontMatch[1] : this.selectedFont;
+                    editorState.editor.replaceSelection(
+                        `<span style="font-family: ${currentFont}; font-size: ${newSize}px">${innerText}</span>`
+                    );
+                } else {
+                    // 如果没有字体标记，只应用字号
+                    editorState.editor.replaceSelection(
+                        `<span style="font-size: ${newSize}px">${selection}</span>`
+                    );
+                }
+                editorState.editor.focus();
+            }
+        };
+
+        // 绑定事件
+        decreaseButton.addEventListener('click', () => {
+            const currentSize = parseInt(fontSizeInput.value);
+            updateFontSize(currentSize - 1);
+        });
+
+        increaseButton.addEventListener('click', () => {
+            const currentSize = parseInt(fontSizeInput.value);
+            updateFontSize(currentSize + 1);
+        });
+
+        fontSizeInput.addEventListener('change', () => {
+            const newSize = parseInt(fontSizeInput.value);
+            updateFontSize(newSize);
         });
 
         // 颜色设置
         const colorSection = container.createDiv('settings-section');
         colorSection.createSpan({ text: '颜色:', cls: 'settings-label' });
-        const colorPreview = colorSection.createDiv('color-preview');
-        colorPreview.style.backgroundColor = this.selectedColor;
+        const colorGrid = colorSection.createDiv('color-grid');
+        const colors = [
+            // 蓝色系列
+            '#1E88E5', '#2196F3', '#64B5F6', '#90CAF9',
+            // 红色系列
+            '#E53935', '#F44336', '#EF5350', '#E57373',
+            // 绿色系列
+            '#43A047', '#4CAF50', '#66BB6A', '#81C784',
+            // 紫色系列
+            '#8E24AA', '#9C27B0', '#AB47BC', '#BA68C8',
+            // 中性色系列
+            '#212121', '#424242', '#616161', '#757575'
+        ];
 
-        const colorPicker = new Pickr({
-            el: colorPreview,
-            theme: 'classic',
-            default: this.selectedColor,
-            swatches: [
-                '#000000', '#FF0000', '#00FF00', '#0000FF',
-                '#FFFF00', '#FF00FF', '#00FFFF', '#808080'
-            ],
-            components: {
-                preview: true,
-                opacity: true,
-                hue: true,
-                interaction: {
-                    hex: true,
-                    rgba: true,
-                    input: true,
-                    save: true
+        colors.forEach(color => {
+            const colorItem = colorGrid.createDiv('color-item');
+            colorItem.style.backgroundColor = color;
+            colorItem.addEventListener('click', () => {
+                this.selectedColor = color;
+                const editorState = this.checkEditorState();
+                if (!editorState) return;
+
+                const selection = editorState.editor.getSelection();
+                if (selection) {
+                    editorState.editor.replaceSelection(
+                        `<span style="color: ${color}">${selection}</span>`
+                    );
+                } else {
+                    const cursor = editorState.editor.getCursor();
+                    editorState.editor.replaceRange(
+                        `<span style="color: ${color}">`,
+                        cursor
+                    );
+                    const endPos = editorState.editor.getCursor();
+                    editorState.editor.replaceRange('</span>', endPos);
+                    editorState.editor.setCursor(endPos);
                 }
-            }
-        });
-
-        colorPicker.on('save', (color: Pickr.HSVaColor) => {
-            if (!color) return;
-            this.selectedColor = color.toHEXA().toString();
-            colorPreview.style.backgroundColor = this.selectedColor;
-            colorPicker.hide();
+            });
         });
 
         // 高亮颜色设置
         const highlightSection = container.createDiv('settings-section');
         highlightSection.createSpan({ text: '高亮:', cls: 'settings-label' });
-        const highlightPreview = highlightSection.createDiv('color-preview');
-        highlightPreview.style.backgroundColor = this.selectedHighlightColor;
+        const highlightGrid = highlightSection.createDiv('color-grid');
+        const highlightColors = [
+            'rgba(255, 235, 59, 0.5)',   // 淡黄色
+            'rgba(255, 193, 7, 0.5)',    // 琥珀色
+            'rgba(255, 152, 0, 0.5)',    // 橙色
+            'rgba(255, 87, 34, 0.5)',    // 深橙色
+            'rgba(244, 67, 54, 0.5)',    // 红色
+            'rgba(233, 30, 99, 0.5)',    // 粉红色
+            'rgba(156, 39, 176, 0.5)',   // 紫色
+            'rgba(103, 58, 183, 0.5)'    // 深紫色
+        ];
 
-        const highlightPicker = new Pickr({
-            el: highlightPreview,
-            theme: 'classic',
-            default: this.selectedHighlightColor,
-            swatches: [
-                '#ffeb3b', '#ffc107', '#ff9800', '#ff5722',
-                '#f44336', '#e91e63', '#9c27b0', '#673ab7'
-            ],
-            components: {
-                preview: true,
-                opacity: true,
-                hue: true,
-                interaction: {
-                    hex: true,
-                    rgba: true,
-                    input: true,
-                    save: true
+        let activeHighlight: HTMLElement | null = null;
+
+        highlightColors.forEach(color => {
+            const highlightItem = highlightGrid.createDiv('color-item');
+            highlightItem.style.backgroundColor = color;
+            highlightItem.addEventListener('click', () => {
+                const editorState = this.checkEditorState();
+                if (!editorState) return;
+
+                if (activeHighlight === highlightItem) {
+                    // 取消高亮状态
+                    activeHighlight.classList.remove('active');
+                    activeHighlight = null;
+                    return;
                 }
-            }
-        });
 
-        highlightPicker.on('save', (color: Pickr.HSVaColor) => {
-            if (!color) return;
-            this.selectedHighlightColor = color.toHEXA().toString();
-            highlightPreview.style.backgroundColor = this.selectedHighlightColor;
-            highlightPicker.hide();
+                if (activeHighlight) {
+                    activeHighlight.classList.remove('active');
+                }
+                activeHighlight = highlightItem;
+                activeHighlight.classList.add('active');
+
+                const selection = editorState.editor.getSelection();
+                if (selection) {
+                    editorState.editor.replaceSelection(
+                        `<span style="background-color: ${color}">${selection}</span>`
+                    );
+                } else {
+                    const cursor = editorState.editor.getCursor();
+                    editorState.editor.replaceRange(
+                        `<span style="background-color: ${color}">`,
+                        cursor
+                    );
+                    const endPos = editorState.editor.getCursor();
+                    editorState.editor.replaceRange('</span>', endPos);
+                    editorState.editor.setCursor(endPos);
+                }
+            });
         });
 
         // 表格设置
@@ -298,9 +399,16 @@ class FormatToolbarView extends ItemView {
                 return;
             }
     
+            // 保存当前光标位置
+            const cursor = editorState.editor.getCursor();
+    
             editorState.editor.replaceSelection(
                 `<span style="font-family: ${this.selectedFont}; font-size: ${this.selectedFontSize}">${selection}</span>`
             );
+            
+            // 恢复光标位置
+            editorState.editor.setCursor(cursor);
+            editorState.editor.focus();
         };
     }
 
@@ -319,10 +427,29 @@ class FormatToolbarView extends ItemView {
                 new Notice('请先选择要格式化的文本');
                 return;
             }
-    
+
+            // 保存当前光标位置
+            const cursor = editorState.editor.getCursor();
+
+            // 优化颜色标记的正则表达式，处理嵌套情况
+            const colorRegex = /<span style="color: #[0-9a-fA-F]{6}">((?:(?!<\/span>).)*)<\/span>/g;
+            let text = selection;
+            let match;
+
+            // 递归移除所有颜色标记
+            while ((match = colorRegex.exec(text)) !== null) {
+                text = text.replace(match[0], match[1]);
+                colorRegex.lastIndex = 0; // 重置正则表达式的匹配位置
+            }
+
+            // 应用新的颜色标记
             editorState.editor.replaceSelection(
-                `<span style="color: ${this.selectedColor}">${selection}</span>`
+                `<span style="color: ${this.selectedColor}">${text}</span>`
             );
+            
+            // 恢复光标位置
+            editorState.editor.setCursor(cursor);
+            editorState.editor.focus();
         };
     }
 
@@ -341,17 +468,43 @@ class FormatToolbarView extends ItemView {
                 new Notice('请先选择要格式化的文本');
                 return;
             }
-    
-            editorState.editor.replaceSelection(
-                `<span style="background-color: ${this.selectedHighlightColor}">${selection}</span>`
-            );
+
+            // 保存当前光标位置
+            const cursor = editorState.editor.getCursor();
+
+            // 检查是否已有高亮标记
+            const highlightRegex = /<span style="background-color: #[0-9a-fA-F]{6}">(.*?)<\/span>/;
+            const match = selection.match(highlightRegex);
+
+            if (match) {
+                // 如果已有高亮标记，先移除原有标记
+                const innerText = match[1];
+                if (this.selectedHighlightColor === match[0].match(/#[0-9a-fA-F]{6}/)[0]) {
+                    // 如果选择的颜色与当前颜色相同，则只移除标记
+                    editorState.editor.replaceSelection(innerText);
+                } else {
+                    // 如果选择了不同的颜色，则应用新颜色
+                    editorState.editor.replaceSelection(
+                        `<span style="background-color: ${this.selectedHighlightColor}">${innerText}</span>`
+                    );
+                }
+            } else {
+                // 如果没有高亮标记，直接应用新颜色
+                editorState.editor.replaceSelection(
+                    `<span style="background-color: ${this.selectedHighlightColor}">${selection}</span>`
+                );
+            }
+            
+            // 恢复光标位置
+            editorState.editor.setCursor(cursor);
+            editorState.editor.focus();
         };
     };
 
     private createTableButton(container: HTMLElement) {
         const button = container.createEl('button', {
             cls: 'format-toolbar-button',
-            text: '表格'
+            text: '添加表格'
         });
 
         button.onclick = async () => {
@@ -359,6 +512,7 @@ class FormatToolbarView extends ItemView {
             if (!editorState) return;
 
             const selection = editorState.editor.getSelection();
+            const cursor = editorState.editor.getCursor();
             let tableContent = '';
 
             if (selection) {
@@ -436,6 +590,10 @@ class FormatToolbarView extends ItemView {
 
             // 将表格内容插入到编辑器中
             editorState.editor.replaceSelection(tableContent);
+            
+            // 恢复光标位置
+            editorState.editor.setCursor(cursor);
+            editorState.editor.focus();
         };
     }
 }
