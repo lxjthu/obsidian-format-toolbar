@@ -237,6 +237,57 @@
     background-color: var(--background-modifier-active);
 }
 
+.button-group {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 8px;
+    padding: 8px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    background-color: var(--background-primary);
+    margin-bottom: 12px;
+    width: 100%;
+}
+
+.checkbox-button,
+.link-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    background-color: var(--background-primary);
+    color: var(--text-normal);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 8px;
+}
+
+.checkbox-button:hover,
+.link-button:hover {
+    background-color: var(--background-modifier-hover);
+    transform: scale(1.05);
+}
+
+.checkbox-button:active,
+.link-button:active {
+    background-color: var(--background-modifier-active);
+    transform: scale(0.95);
+}
+
+.checkbox-button svg,
+.link-button svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1;
+    transition: all 0.2s ease;
+}
+
 @media screen and (max-width: 768px) {
     .format-toolbar-container {
         gap: 8px;

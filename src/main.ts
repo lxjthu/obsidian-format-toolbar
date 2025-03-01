@@ -1,4 +1,4 @@
-import { Plugin, MarkdownView, Notice, WorkspaceLeaf, ItemView } from 'obsidian';
+import { Plugin, MarkdownView, Notice, WorkspaceLeaf, ItemView, Editor } from 'obsidian';
 import { createPopper } from '@popperjs/core';
 import Pickr from '@simonwep/pickr';
 
@@ -102,6 +102,9 @@ class FormatToolbarView extends ItemView {
     
         const toolbarContainer = container.createDiv('format-toolbar-container');
         
+        // 创建格式化按钮
+        this.createFormatButtons(toolbarContainer);
+        
         // 创建设置区域
         const settingsContainer = toolbarContainer.createDiv('format-toolbar-settings');
         this.createSettingsPanel(settingsContainer);
@@ -114,7 +117,127 @@ class FormatToolbarView extends ItemView {
     }
 
     private createFormatButtons(container: HTMLElement) {
-        // 不再需要创建其他按钮
+        // 创建按钮组容器
+        const buttonGroup = container.createDiv('button-group');
+
+        // 创建双向链接按钮
+        const wikiLinkButton = buttonGroup.createDiv('link-button');
+        wikiLinkButton.setAttribute('aria-label', '插入双向链接');
+        wikiLinkButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>`;
+        
+        wikiLinkButton.addEventListener('click', () => {
+            const editorState = this.checkEditorState();
+            if (!editorState) return;
+
+            const editor = editorState.editor;
+            const selection = editor.getSelection();
+
+            if (selection) {
+                // 如果有选中文本，将其转换为双向链接格式
+                editor.replaceSelection(`[[${selection}]]`);
+            } else {
+                // 如果没有选中文本，插入空的双向链接并将光标定位到中间
+                const cursor = editor.getCursor();
+                editor.replaceRange('[[]]', cursor);
+                editor.setCursor({
+                    line: cursor.line,
+                    ch: cursor.ch + 2
+                });
+            }
+        });
+
+        // 创建复选框按钮
+        const checkboxButton = buttonGroup.createDiv('checkbox-button');
+        checkboxButton.setAttribute('aria-label', '插入复选框');
+        checkboxButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z"/><path d="M18 9l-1.4-1.4-6.6 6.6-2.6-2.6L6 13l4 4z"/></svg>';
+        checkboxButton.addEventListener('click', () => {
+            const editorState = this.checkEditorState();
+            if (!editorState) return;
+
+            const editor = editorState.editor;
+            const cursor = editor.getCursor();
+            editor.replaceRange('- [ ] ', cursor);
+            editor.focus();
+        });
+
+        // 创建普通链接按钮
+        const linkButton = buttonGroup.createDiv('link-button');
+        linkButton.setAttribute('aria-label', '插入链接');
+        linkButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>';
+        linkButton.addEventListener('click', () => {
+            const editorState = this.checkEditorState();
+            if (!editorState) return;
+
+            const editor = editorState.editor;
+            const selection = editor.getSelection();
+            if (selection) {
+                editor.replaceSelection(`[${selection}]()`);
+                const cursor = editor.getCursor();
+                editor.setCursor(cursor.line, cursor.ch - 1);
+            } else {
+                const cursor = editor.getCursor();
+                editor.replaceRange('[]()', cursor);
+                editor.setCursor(cursor.line, cursor.ch + 1);
+            }
+            editor.focus();
+        });
+
+        // 创建加粗按钮
+        const boldButton = buttonGroup.createDiv('link-button');
+        boldButton.setAttribute('aria-label', '加粗');
+        boldButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M15.6 10.79c.97-.67 1.65-1.77 1.65-2.79 0-2.26-1.75-4-4-4H7v14h7.04c2.09 0 3.71-1.7 3.71-3.79 0-1.52-.86-2.82-2.15-3.42zM10 6.5h3c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5h-3v-3zm3.5 9H10v-3h3.5c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5z"/></svg>';
+        boldButton.addEventListener('click', () => {
+            const editorState = this.checkEditorState();
+            if (!editorState) return;
+
+            const editor = editorState.editor;
+            const selection = editor.getSelection();
+            if (selection) {
+                editor.replaceSelection(`**${selection}**`);
+            } else {
+                const cursor = editor.getCursor();
+                editor.replaceRange('****', cursor);
+                editor.setCursor(cursor.line, cursor.ch + 2);
+            }
+            editor.focus();
+        });
+
+        // 创建斜体按钮
+        const italicButton = buttonGroup.createDiv('link-button');
+        italicButton.setAttribute('aria-label', '斜体');
+        italicButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 4v3h2.21l-3.42 8H6v3h8v-3h-2.21l3.42-8H18V4z"/></svg>';
+        italicButton.addEventListener('click', () => {
+            const editorState = this.checkEditorState();
+            if (!editorState) return;
+
+            const editor = editorState.editor;
+            const selection = editor.getSelection();
+            if (selection) {
+                editor.replaceSelection(`*${selection}*`);
+            } else {
+                const cursor = editor.getCursor();
+                editor.replaceRange('**', cursor);
+                editor.setCursor(cursor.line, cursor.ch + 1);
+            }
+            editor.focus();
+        });
+
+        // 创建时间按钮
+        const timeButton = buttonGroup.createDiv('link-button');
+        timeButton.setAttribute('aria-label', '插入当前时间');
+        timeButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.2 3.2.8-1.3-4.5-2.7V7z"/></svg>';
+        timeButton.addEventListener('click', () => {
+            const editorState = this.checkEditorState();
+            if (!editorState) return;
+
+            const editor = editorState.editor;
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('zh-CN', { hour12: false });
+            const cursor = editor.getCursor();
+            editor.replaceRange(timeString, cursor);
+            editor.focus();
+        });
+
     }
 
     private createSettingsPanel(container: HTMLElement) {
@@ -127,7 +250,12 @@ class FormatToolbarView extends ItemView {
             { name: '黑体', family: 'SimHei' },
             { name: '微软雅黑', family: 'Microsoft YaHei' },
             { name: '楷体', family: 'KaiTi' },
-            { name: '仿宋', family: 'FangSong' }
+            { name: '仿宋', family: 'FangSong' },
+            { name: '华康海报体', family: 'DFPHaiBaoW12' },
+            { name: '方正卡通体', family: 'FZKaTong-M19' },
+            { name: '华康少女体', family: 'DFPShaoNvW5' },
+            { name: '华康圆体', family: 'DFPYuanW5' },
+            { name: '方正娃娃体', family: 'FZWaWaW-GB1' }
         ];
         fonts.forEach(font => {
             const fontItem = fontGrid.createDiv('font-item');
@@ -242,16 +370,24 @@ class FormatToolbarView extends ItemView {
         colorSection.createSpan({ text: '颜色:', cls: 'settings-label' });
         const colorGrid = colorSection.createDiv('color-grid');
         const colors = [
-            // 蓝色系列
-            '#1E88E5', '#2196F3', '#64B5F6', '#90CAF9',
             // 红色系列
-            '#E53935', '#F44336', '#EF5350', '#E57373',
-            // 绿色系列
-            '#43A047', '#4CAF50', '#66BB6A', '#81C784',
+            '#D32F2F', '#EF5350',
+            // 橙色系列
+            '#F57C00', '#FB8C00',
+            // 黄色系列
+            '#FBC02D', '#FFD54F',
+            // 青色系列
+            '#00ACC1', '#26C6DA',
+            // 蓝色系列
+            '#1976D2', '#42A5F5',
             // 紫色系列
-            '#8E24AA', '#9C27B0', '#AB47BC', '#BA68C8',
-            // 中性色系列
-            '#212121', '#424242', '#616161', '#757575'
+            '#7B1FA2', '#AB47BC',
+            // 棕色系列
+            '#5D4037', '#8D6E63',
+            // 黑色系列
+            '#212121', '#424242',
+            // 灰色系列
+            '#757575', '#BDBDBD'
         ];
 
         colors.forEach(color => {
@@ -334,6 +470,45 @@ class FormatToolbarView extends ItemView {
                 }
             });
         });
+
+        // // 复选框和链接按钮
+        // const buttonSection = container.createDiv('settings-section');
+        // buttonSection.createSpan({ text: '工具:', cls: 'settings-label' });
+        // const buttonContainer = buttonSection.createDiv('button-container');
+
+        // // 创建复选框按钮
+        // const checkboxButton = buttonContainer.createDiv('checkbox-button');
+        // checkboxButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z"/><path d="M18 9l-1.4-1.4-6.6 6.6-2.6-2.6L6 13l4 4z"/></svg>';
+        // checkboxButton.addEventListener('click', () => {
+        //     const editorState = this.checkEditorState();
+        //     if (!editorState) return;
+
+        //     const editor = editorState.editor;
+        //     const cursor = editor.getCursor();
+        //     editor.replaceRange('- [ ] ', cursor);
+        //     editor.focus();
+        // });
+
+        // // 创建链接按钮
+        // const linkButton = buttonContainer.createDiv('link-button');
+        // linkButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>';
+        // linkButton.addEventListener('click', () => {
+        //     const editorState = this.checkEditorState();
+        //     if (!editorState) return;
+
+        //     const editor = editorState.editor;
+        //     const selection = editor.getSelection();
+        //     if (selection) {
+        //         editor.replaceSelection(`[${selection}]()`);
+        //         const cursor = editor.getCursor();
+        //         editor.setCursor(cursor.line, cursor.ch - 1);
+        //     } else {
+        //         const cursor = editor.getCursor();
+        //         editor.replaceRange('[]()', cursor);
+        //         editor.setCursor(cursor.line, cursor.ch + 1);
+        //     }
+        //     editor.focus();
+        // });
 
         // 表格设置
         const tableSection = container.createDiv('settings-section table-settings');
