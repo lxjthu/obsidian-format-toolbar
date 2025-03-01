@@ -3,7 +3,7 @@
   "name": "Format Toolbar",
   "version": "1.0.0",
   "minAppVersion": "0.15.0",
-  "description": "为 Obsidian 添加格式化工具栏，支持字体样式、颜色、高亮、表格等功能。",
-  "author": "Format Toolbar Team",
+  "description": "为 Obsidian 添加格式化工具栏，支持字体样式、颜色、高亮、表格、复选框、链接、双向链接、加粗、斜体和时间等功能。",
+  "author": "小狼早上好",
   "isDesktopOnly": false
 }

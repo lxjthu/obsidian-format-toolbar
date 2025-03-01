@@ -185,7 +185,7 @@ class FormatToolbarView extends ItemView {
         // 创建加粗按钮
         const boldButton = buttonGroup.createDiv('link-button');
         boldButton.setAttribute('aria-label', '加粗');
-        boldButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M15.6 10.79c.97-.67 1.65-1.77 1.65-2.79 0-2.26-1.75-4-4-4H7v14h7.04c2.09 0 3.71-1.7 3.71-3.79 0-1.52-.86-2.82-2.15-3.42zM10 6.5h3c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5h-3v-3zm3.5 9H10v-3h3.5c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5z"/></svg>';
+        boldButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M15.6 10.79c.97-.67 1.65-1.77 1.65-2.79 0-2.26-1.75-4 4-4H7v14h7.04c2.09 0 3.71-1.7 3.71-3.79 0-1.52-.86-2.82-2.15-3.42zM10 6.5h3c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5h-3v-3zm3.5 9H10v-3h3.5c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5z"/></svg>';
         boldButton.addEventListener('click', () => {
             const editorState = this.checkEditorState();
             if (!editorState) return;
@@ -246,16 +246,16 @@ class FormatToolbarView extends ItemView {
         fontSection.createSpan({ text: '字体:', cls: 'settings-label' });
         const fontGrid = fontSection.createDiv('font-grid');
         const fonts = [
-            { name: '宋体', family: 'SimSun' },
-            { name: '黑体', family: 'SimHei' },
-            { name: '微软雅黑', family: 'Microsoft YaHei' },
-            { name: '楷体', family: 'KaiTi' },
-            { name: '仿宋', family: 'FangSong' },
-            { name: '华康海报体', family: 'DFPHaiBaoW12' },
-            { name: '方正卡通体', family: 'FZKaTong-M19' },
-            { name: '华康少女体', family: 'DFPShaoNvW5' },
-            { name: '华康圆体', family: 'DFPYuanW5' },
-            { name: '方正娃娃体', family: 'FZWaWaW-GB1' }
+            { name: '思源宋体', family: 'Source Han Serif SC' },
+            { name: '思源黑体', family: 'Source Han Sans SC' },
+            { name: 'LXGW WenKai', family: 'LXGW WenKai' },
+            { name: 'LXGW WenKai Mono', family: 'LXGW WenKai Mono' },
+            { name: '霞鹜文楷等宽', family: 'LXGW WenKai Mono' },
+            { name: '思源等宽', family: 'Source Han Mono SC' },
+            { name: '未来荧黑', family: 'LXGW Neo XiHei' },
+            { name: '得意黑', family: 'SmileySans-Oblique' },
+            { name: '站酷快乐体', family: 'zcool-happy' },
+            { name: '站酷高端黑', family: 'zcool-gdh' }
         ];
         fonts.forEach(font => {
             const fontItem = fontGrid.createDiv('font-item');
@@ -474,7 +474,7 @@ class FormatToolbarView extends ItemView {
         // // 复选框和链接按钮
         // const buttonSection = container.createDiv('settings-section');
         // buttonSection.createSpan({ text: '工具:', cls: 'settings-label' });
-        // const buttonContainer = buttonSection.createDiv('button-container');
+        // buttonContainer = buttonSection.createDiv('button-container');
 
         // // 创建复选框按钮
         // const checkboxButton = buttonContainer.createDiv('checkbox-button');
