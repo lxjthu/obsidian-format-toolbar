@@ -1,0 +1,202 @@
+.format-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 8px;
+    background-color: var(--background-secondary);
+    border-bottom: 1px solid var(--background-modifier-border);
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.format-toolbar-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 8px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    background-color: var(--background-primary);
+    color: var(--text-normal);
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.format-toolbar-button:hover {
+    background-color: var(--background-modifier-hover);
+}
+
+.format-toolbar-button:active {
+    background-color: var(--background-modifier-active);
+}
+
+.color-picker-popup {
+    padding: 8px;
+    background-color: var(--background-primary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.font-style-popup {
+    padding: 8px;
+    background-color: var(--background-primary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    min-width: 200px;
+    z-index: 1000;
+}
+
+.font-section {
+    margin-bottom: 12px;
+}
+
+.section-title {
+    font-weight: bold;
+    margin-bottom: 8px;
+    color: var(--text-normal);
+    padding: 0 8px;
+}
+
+.font-style-item {
+    padding: 4px 8px;
+    cursor: pointer;
+    border-radius: 2px;
+    color: var(--text-normal);
+}
+
+.font-style-item:hover {
+    background-color: var(--background-modifier-hover);
+}
+
+.font-style-option {
+    padding: 4px 8px;
+    cursor: pointer;
+}
+
+.font-style-option:hover {
+    background-color: var(--background-modifier-hover);
+}
+
+.format-toolbar-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+.format-toolbar-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    width: 100%;
+}
+
+.format-toolbar-settings {
+    padding: 12px;
+    background-color: var(--background-primary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    width: 100%;
+    box-sizing: border-box;
+    overflow-x: auto;
+}
+
+.settings-section {
+    margin-bottom: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    min-width: 200px;
+}
+
+.settings-label {
+    min-width: 60px;
+    color: var(--text-muted);
+    flex-shrink: 0;
+}
+
+.settings-select {
+    padding: 4px 8px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    background-color: var(--background-primary);
+    color: var(--text-normal);
+    flex: 1;
+    min-width: 120px;
+    max-width: 200px;
+    height: 32px;
+    touch-action: manipulation;
+}
+
+.color-preview {
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    cursor: pointer;
+    touch-action: manipulation;
+}
+
+.table-settings {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+}
+
+.table-input {
+    width: 60px;
+    padding: 4px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    background-color: var(--background-primary);
+    color: var(--text-normal);
+    height: 32px;
+    touch-action: manipulation;
+}
+
+.table-align-select {
+    padding: 4px 8px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    background-color: var(--background-primary);
+    color: var(--text-normal);
+    flex: 1;
+    min-width: 100px;
+    max-width: 150px;
+    height: 32px;
+    touch-action: manipulation;
+}
+
+@media screen and (max-width: 768px) {
+    .format-toolbar-container {
+        gap: 8px;
+    }
+
+    .settings-section {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .settings-select,
+    .table-align-select {
+        max-width: 100%;
+    }
+
+    .table-settings {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .table-input {
+        width: 100%;
+    }
+}

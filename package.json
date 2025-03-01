@@ -1,0 +1,29 @@
+{
+  "name": "obsidian-format-toolbar",
+  "version": "1.0.0",
+  "description": "为 Obsidian 添加格式化工具栏，支持字体样式、颜色、高亮、表格等功能。",
+  "scripts": {
+    "dev": "node esbuild.config.mjs",
+    "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production"
+  },
+  "dependencies": {
+    "@popperjs/core": "^2.11.8",
+    "@simonwep/pickr": "^1.9.1",
+    "tslib": "2.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^16.11.6",
+    "builtin-modules": "3.3.0",
+    "esbuild": "^0.13.12",
+    "obsidian": "^1.7.2",
+    "typescript": "^4.9.5"
+  },
+  "keywords": [
+    "obsidian-plugin",
+    "format",
+    "toolbar",
+    "editor"
+  ],
+  "author": "Format Toolbar Team",
+  "license": "MIT"
+}

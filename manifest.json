@@ -1,0 +1,9 @@
+{
+  "id": "obsidian-format-toolbar",
+  "name": "Format Toolbar",
+  "version": "1.0.0",
+  "minAppVersion": "0.15.0",
+  "description": "为 Obsidian 添加格式化工具栏，支持字体样式、颜色、高亮、表格等功能。",
+  "author": "Format Toolbar Team",
+  "isDesktopOnly": false
+}
